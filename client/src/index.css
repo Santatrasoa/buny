@@ -1,1 +1,6 @@
-@import "tailwindcss"
+@import "tailwindcss";
+
+.space-pd {
+  font-size: 17px;
+  cursor: pointer;
+}
