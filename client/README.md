@@ -52,3 +52,9 @@ export default tseslint.config({
   },
 })
 ```
+
+```
+VITE_API_URL=http://localhost:8000
+VITE_API_KEY=1234567890
+```
+ 
