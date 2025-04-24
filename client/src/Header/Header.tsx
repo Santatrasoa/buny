@@ -1,6 +1,7 @@
 import logoBuny from "../assets/logo.png";
 import { BiMenuAltRight, BiSearch, BiShoppingBag, BiUser } from "react-icons/bi";
 import { MdClose } from "react-icons/md";
+import { PiShoppingCartSimple } from "react-icons/pi";
 import { FaCloud } from "react-icons/fa";
 import { useState, useEffect } from "react";
 
@@ -28,7 +29,7 @@ export default function Header() {
   useEffect(() => {
     let timeout: number;
     if (isMenuClicked) {
-      timeout = window.setTimeout(() => setShowOverlay(true), 900);
+      timeout = window.setTimeout(() => setShowOverlay(true), 350);
     } else {
       setShowOverlay(false);
     }
@@ -49,7 +50,7 @@ export default function Header() {
   console.log(isMenuClicked)
 
   return (
-    <header className="bg-gray-100 text-sm">
+    <header className="bg-gray-100 text-sm z-50">
       {/* Mode Desktop */}
       <div className="hidden lg:block">
         <nav className="flex fixed justify-evenly items-center py-6 w-full shadow-sm bg-[#f1f1f1]">
@@ -75,7 +76,7 @@ export default function Header() {
           </div>
 
           <ul className="flex justify-evenly items-center [width:33.33%]">
-            {[BiSearch, BiUser, BiShoppingBag].map((Icon, index) => (
+            {[BiSearch, BiUser, PiShoppingCartSimple].map((Icon, index) => (
               <Icon key={index} className="w-6 h-6 cursor-pointer" />
             ))}
           </ul>
@@ -97,7 +98,7 @@ export default function Header() {
           {/* Menu gauche animé */}
           <div
             className={`bg-gray-100 w-1/2 h-full flex flex-col items-center justify-start py-11 
-                        transform transition-transform duration-[1000ms] ease-in-out`}
+                        transform transition-transform duration-[500ms] ease-in-out`}
             style={{
               transform: isMenuClicked ? "translateX(0)" : "translateX(-100%)",
             }}
@@ -126,7 +127,7 @@ export default function Header() {
           {/* Overlay à droite */}
           {showOverlay && (
             <div
-              className="bg-black opacity-10 w-1/2 h-full transition-opacity duration-300 ease-in-out"
+              className="bg-black opacity-10 w-1/2 h-full transition-opacity duration-75 ease-in-out"
               onClick={() => setIsMenuClicked(false)}
             ></div>
           )}
@@ -143,7 +144,7 @@ export default function Header() {
             <BiUser className="w-6 h-6" />
             <a href="#">Account</a>
           </div>
-          <div className="flex flex-col items-center m-2 hover:opacity-50 transition">
+          <div className="flex flex-col items-center m-2 hover:opacity-50 transition cursor-pointer">
             <BiSearch className="w-6 h-6" />
             <span>Search</span>
           </div>
