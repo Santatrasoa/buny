@@ -1,5 +1,6 @@
-import Header from "./Header/Header"
+import {Header} from "./Header/Header"
 import Contact from "./Contact/Contact"
+import { Footer } from "./Footer/Footer"
 
 function App() {
 
@@ -7,6 +8,7 @@ function App() {
     <>
       <Header />
       <Contact />
+      <Footer />
     </>
   )
 }

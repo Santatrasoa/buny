@@ -5,55 +5,21 @@ import { PiShoppingCartSimple } from "react-icons/pi";
 import { FaCloud } from "react-icons/fa";
 import { useState, useEffect } from "react";
 
-export default function Header() {
-  const [isMenuClicked, setIsMenuClicked] = useState(false);
+function Header() {
+  // const [isMenuClicked, setIsMenuClicked] = useState(false);
   const [activeItem, setActiveItem] = useState("Home");
-  const [showOverlay, setShowOverlay] = useState(false); // pour l'overlay
+  // const [showOverlay, setShowOverlay] = useState(false); // pour l'overlay
   const navItems = ["Home", "Shop", "Products", "Contact"];
 
-  const handleMenuClick = () => setIsMenuClicked(!isMenuClicked);
   const handleSetActive = (item: string) => {
     setActiveItem(item);
-    setIsMenuClicked(false); // Ferme le menu après avoir cliqué sur un élément
+    // setIsMenuClicked(false); // Ferme le menu après avoir cliqué sur un élément
   };
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsMenuClicked(false);
-    };
-    window.addEventListener("resize", handleResize);
-    handleResize();
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    let timeout: number;
-    if (isMenuClicked) {
-      timeout = window.setTimeout(() => setShowOverlay(true), 350);
-    } else {
-      setShowOverlay(false);
-    }
-    return () => clearTimeout(timeout);
-  }, [isMenuClicked]);
-  
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsMenuClicked(false);
-    };
-    window.addEventListener("resize", handleResize);
-    handleResize();
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  
-  console.log(isMenuClicked)
-
   return (
-    <header className="bg-gray-100 text-sm z-50">
-      {/* Mode Desktop */}
+    <header className="bg-gray-100 text-sm ">
       <div className="hidden lg:block">
-        <nav className="flex fixed justify-evenly items-center py-6 w-full shadow-sm bg-[#f1f1f1]">
+        <nav className="flex justify-evenly items-center py-6 w-full shadow-sm bg-[#f1f1f1]">
           <ul className="flex justify-evenly text-[#777] items-center [width:33.33%]">
             {navItems.map((item) => (
               <li
@@ -82,9 +48,39 @@ export default function Header() {
           </ul>
         </nav>
       </div>
+      <MobileHeader />
+    </header>
+  );
+}
 
-      {/* Mode Mobile */}
-      <div className="lg:hidden">
+function MobileHeader() {
+  const [isMenuClicked, setIsMenuClicked] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false); // pour l'overlay
+  
+  const handleMenuClick = () => setIsMenuClicked(!isMenuClicked);
+
+  useEffect(() => {
+    let timeout: number;
+    if (isMenuClicked) {
+      timeout = window.setTimeout(() => setShowOverlay(true), 350);
+    } else {
+      setShowOverlay(false);
+    }
+    return () => clearTimeout(timeout);
+  }, [isMenuClicked]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setIsMenuClicked(false);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return(
+    <>
+      <div className="lg:hidden fixed w-full z-40">
         <nav className="flex justify-between items-center py-6 shadow-sm bg-[#f1f1f1]">
           <BiMenuAltRight
             className="w-8 h-8 cursor-pointer ml-4 transition-all z-[1000]"
@@ -110,17 +106,10 @@ export default function Header() {
               <MdClose className="w-6 h-6 border-solid border-2 rounded-2xl" />
             </button>
             <ul className="space-y-6 text-lg">
-              {navItems.map((item) => (
-                <li
-                  key={item}
-                  className={`cursor-pointer ${
-                    activeItem === item ? "text-[#000]" : "text-[#777]"
-                  }`}
-                  onClick={() => handleSetActive(item)}
-                >
-                  {item}
-                </li>
-              ))}
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#">Products</a></li>
+                <li><a href="#">Contact</a></li>
             </ul>
           </div>
 
@@ -133,9 +122,7 @@ export default function Header() {
           )}
         </div>
 
-
-        {/* Mobile Footer Menu */}
-        <div className="fixed bottom-0 w-full p-1 shadow [background-color:#f1f1f1] flex justify-around text-xs z-[10000]">
+        <div className="fixed bottom-0 w-full p-1 shadow [background-color:#f1f1f1] flex justify-around text-xs z-50">
           <div className="flex flex-col items-center m-2 hover:opacity-50 transition">
             <BiShoppingBag className="w-6 h-6" />
             <a href="shop.html">Shop</a>
@@ -150,6 +137,8 @@ export default function Header() {
           </div>
         </div>
       </div>
-    </header>
-  );
+    </>
+  )
 }
+
+export {MobileHeader, Header}

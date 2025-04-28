@@ -22,3 +22,24 @@ svg {
   width: 100px;
   height: 50px;
 }
+
+.container-info {
+  @apply p-7
+}
+
+.container-info div {
+  @apply py-5
+}
+
+.container-info h1 {
+  @apply text-2xl
+}
+
+.container-info p {
+  @apply opacity-50 p-2 wrap-anywhere
+
+}
+
+hr {
+  @apply opacity-30
+}
