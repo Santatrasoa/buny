@@ -1,144 +1,183 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 import { productApi } from "../../api/api";
 import ProductCard from "../../components/ProductCard";
 import type { Product } from "../../types";
 
-const CATEGORIES = ["All", "Baby", "Boys", "Toys"];
+const CATEGORIES = ["All", "Baby", "Boys", "Girls", "Toys"];
+
+/* Squelette de chargement */
+const SkeletonCard = () => (
+  <div className="flex flex-col w-52 m-3 animate-pulse">
+    <div className="w-full aspect-[3/4] rounded-2xl bg-gray-200" />
+    <div className="pt-3 px-1 flex flex-col gap-2">
+      <div className="h-2.5 w-16 bg-gray-200 rounded-full" />
+      <div className="h-3.5 w-36 bg-gray-200 rounded-full" />
+      <div className="h-3.5 w-20 bg-gray-200 rounded-full" />
+    </div>
+  </div>
+);
 
 export default function Home() {
   const [recommended, setRecommended] = useState<Product[]>([]);
-  const [filtered, setFiltered] = useState<Product[]>([]);
-  const [category, setCategory] = useState("All");
-  const [catOpen, setCatOpen] = useState(false);
+  const [filtered,    setFiltered]    = useState<Product[]>([]);
+  const [loadingRec,  setLoadingRec]  = useState(true);
+  const [loadingFil,  setLoadingFil]  = useState(true);
+  const [category,    setCategory]    = useState("All");
+  const [catOpen,     setCatOpen]     = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
 
+  /* Recommended */
   useEffect(() => {
+    setLoadingRec(true);
     productApi
-      .list({ active: true, limit: 6 })
+      .list({ active: true, limit: 4 })
       .then((r) => setRecommended(r.data ?? []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingRec(false));
   }, []);
 
+  /* Filtered by category */
   useEffect(() => {
+    setLoadingFil(true);
     const params: Record<string, unknown> = { active: true, limit: 8 };
     if (category !== "All") params.category = category;
     productApi
       .list(params)
       .then((r) => setFiltered(r.data ?? []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoadingFil(false));
   }, [category]);
 
+  /* Close dropdown on outside click */
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
+    const fn = (e: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(e.target as Node))
         setCatOpen(false);
-      }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("click", fn);
+    return () => document.removeEventListener("click", fn);
   }, []);
 
   return (
-    <main className="w-full overflow-x-hidden font-mono">
-      {/* ── Hero Slider ──────────────────────────────────────────── */}
-      {/* container-slide: flex, bg-[#f1f1f1], relative */}
-      <section className="flex w-full bg-[#f1f1f1] relative flex-col items-center md:flex-row">
-        {/* content-word: w-50%, flex col, centered */}
-        <div className="z-10 w-full md:w-1/2 flex flex-col justify-center items-center py-16 px-6">
-          <h1 className="text-3xl py-[3px]">Newborn</h1>
-          <h1 className="text-3xl py-[3px]">Baby</h1>
-          <h1 className="text-3xl py-[3px]">Clothes</h1>
-          <p className="opacity-50 text-[15px] py-[5px]">
+    <div className="w-full overflow-x-hidden font-mono">
+
+      {/* ══════════════════════════════════════════════════════
+          HERO
+      ══════════════════════════════════════════════════════ */}
+      <section className="relative flex flex-col md:flex-row items-center bg-[#f4f9f5] min-h-[480px] overflow-hidden">
+        {/* Texte */}
+        <div className="z-10 w-full md:w-1/2 flex flex-col justify-center items-center md:items-start gap-3 py-16 px-8 md:px-16">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#719378] bg-green-50 px-3 py-1 rounded-full">
+            New Collection
+          </span>
+          <h1 className="text-5xl md:text-6xl font-light text-gray-800 leading-tight">
+            Newborn<br />
+            <span className="font-normal text-[#719378]">Baby</span><br />
+            Clothes
+          </h1>
+          <p className="text-sm text-gray-400 leading-relaxed max-w-xs">
             Our cutest looks &amp; matching sets,
+            designed for easy dressing &amp; every day comfort.
           </p>
-          <p className="opacity-50 text-[15px] py-[5px]">
-            designed for easy dressing &amp; every day comfort
-          </p>
-          <p className="opacity-50 text-[15px] py-[5px]">
-            Purschases relating to perenthood and your baby
-          </p>
-          <Link to="/shop">
-            <button className="z-10 bg-[#719378] text-white text-[12px] font-bold leading-[33px] px-[52px] rounded-[25px] m-[10px] cursor-pointer border-0">
-              Shop now
-            </button>
-          </Link>
+          <div className="flex gap-3 mt-2">
+            <Link to="/shop">
+              <button className="px-8 py-3 rounded-full bg-[#719378] text-white text-sm font-bold hover:opacity-85 transition-opacity cursor-pointer border-none">
+                Shop Now
+              </button>
+            </Link>
+            <Link to="/shop?category=Baby">
+              <button className="px-8 py-3 rounded-full border border-[#719378] text-[#719378] text-sm font-bold hover:bg-green-50 transition-colors cursor-pointer bg-transparent">
+                Baby Collection
+              </button>
+            </Link>
+          </div>
         </div>
 
-        {/* content-img: w-50%, hidden on mobile */}
-        <div className="hidden md:flex w-1/2 justify-center">
+        {/* Image */}
+        <div className="hidden md:flex w-1/2 justify-center items-end pr-8 pb-0 h-full">
           <img
             src="/img/slider-2.jpg"
             alt="baby clothes"
-            className="w-[60%] rounded-[3000px_3000px_0_0]"
+            className="w-[72%] max-w-sm rounded-t-full object-cover"
+            style={{ maxHeight: "440px" }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
           />
         </div>
 
-        {/* cloud: absolute bottom */}
-        <div className="w-full absolute bottom-[-5px] pointer-events-none">
-          <img src="/img/cloud.png" alt="" className="w-full" />
-        </div>
-      </section>
-
-      {/* ── Recommended ─────────────────────────────────────────── */}
-      {/* recommanded: m-[30px], text-center */}
-      <section className="m-[30px] text-center">
-        <h1 className="text-2xl">Recommanded For You</h1>
-        <p className="opacity-40 py-[10px]">
-          Fashion Meets Function, On-trend Style
-        </p>
-      </section>
-
-      {/* container-recommaneded: flex, space-evenly */}
-      <section className="w-full flex items-center justify-evenly flex-wrap">
-        {recommended.length === 0
-          ? [1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center text-center w-[22%] min-w-[140px] p-4"
-              >
-                <div className="text-5xl mb-2">👶</div>
-                <p className="text-[15px] font-bold text-[#719378] py-[10px]">
-                  $24.99
-                </p>
-                <h3 className="text-[20px] font-light py-[10px]">
-                  Baby Outfit {i}
-                </h3>
-                <p className="text-[13px] opacity-50">Baby</p>
-              </div>
-            ))
-          : recommended.map((p) => <ProductCard key={p.id} product={p} />)}
-      </section>
-
-      {/* ── Baby Outfits Banner ──────────────────────────────────── */}
-      {/* babyOutfits: flex, p-[15px] */}
-      <section className="flex p-[15px] flex-col-reverse md:flex-row">
-        <div className="w-full md:w-1/3 flex justify-center items-center p-[10px]">
+        {/* Nuage décoratif */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
           <img
-            src="/img/banner-2.jpg"
+            src="/img/cloud.png"
             alt=""
-            className="w-[321px] h-[421px] object-cover"
+            className="w-full"
+            onError={(e) => (e.currentTarget.style.display = "none")}
           />
         </div>
-        <div className="w-full md:w-1/3 flex justify-center items-center p-[10px]">
-          <img
-            src="/img/banner-1.jpg"
-            alt=""
-            className="w-[321px] h-[421px] object-cover"
-          />
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          RECOMMENDED
+      ══════════════════════════════════════════════════════ */}
+      <section className="py-16 px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-light text-gray-800">Recommended For You</h2>
+          <p className="text-sm text-gray-400 mt-2">Fashion Meets Function, On-trend Style</p>
         </div>
-        {/* c-word */}
-        <div className="w-full md:w-1/3 flex flex-col justify-center items-center md:items-start p-[10px] mb-[50px] md:mb-0">
-          <h1 className="text-[50px] font-normal">Baby Outfits &amp; Sets</h1>
-          <p className="text-[20px] leading-[2] opacity-50 mt-[25px] mb-[25px]">
+        <div className="flex flex-wrap justify-center">
+          {loadingRec
+            ? [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
+            : recommended.length === 0
+            ? (
+              <p className="text-gray-400 text-sm py-10">
+                No products available yet.{" "}
+                <Link to="/shop" className="text-[#719378] no-underline hover:underline">
+                  Browse the shop
+                </Link>
+              </p>
+            )
+            : recommended.map((p) => <ProductCard key={p.id} product={p} />)
+          }
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          BABY OUTFITS BANNER
+      ══════════════════════════════════════════════════════ */}
+      <section className="flex flex-col md:flex-row items-center gap-6 px-6 py-10 bg-[#f9fafb]">
+        {/* Images */}
+        <div className="flex gap-4 w-full md:w-1/2 justify-center">
+          {["/img/banner-2.jpg", "/img/banner-1.jpg"].map((src, i) => (
+            <div
+              key={i}
+              className="w-[45%] aspect-[3/4] rounded-2xl overflow-hidden bg-gray-200"
+            >
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Texte */}
+        <div className="w-full md:w-1/2 flex flex-col gap-5 px-4 md:px-8">
+          <h2 className="text-4xl md:text-5xl font-normal text-gray-800 leading-tight">
+            Baby Outfits &amp; Sets
+          </h2>
+          <p className="text-base text-gray-400 leading-relaxed">
             Dress your little one in our adorable Baby Outfits &amp; Sets,
-            crafted with soft fabrics for maximum comfort and style. From
-            snuggly onesies to charming two-piece sets, each ensemble is
-            designed to keep your baby cozy and looking oh-so-adorable.
+            crafted with soft fabrics for maximum comfort and style.
+            From snuggly onesies to charming two-piece sets.
           </p>
           <button
-            className="bg-[#719378] text-white text-[12px] font-bold leading-[33px] px-[52px] rounded-[25px] m-[10px] cursor-pointer border-0"
+            className="self-start px-8 py-3 rounded-full bg-[#719378] text-white text-sm font-bold hover:opacity-85 transition-opacity cursor-pointer border-none"
             onClick={() => navigate("/shop")}
           >
             Shop Now
@@ -146,99 +185,127 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Kids Section ─────────────────────────────────────────── */}
-      {/* kids: flex, w-full, justify-center */}
-      <section className="flex w-full justify-center flex-col md:flex-row items-center">
-        {/* kids-w-content: w-40%, flex-col, p-[30px] */}
-        <div className="w-full md:w-[40%] flex flex-col items-center text-start md:text-start p-[30px]">
-          <div className="p-[10px] w-full">
-            <h1 className="text-[50px] text-start">Kids</h1>
-            <h3 className="text-[30px]">Clothing, Shoes &amp; Accessories</h3>
-            <p className="text-[20px] leading-[1.8] opacity-50">
-              Elevate your child's wardrobe with our versatile range of Kids
-              Clothing, Shoes &amp; Accessories, crafted to reflect the latest
-              fashion trends while prioritizing comfort and durability.
-            </p>
+      {/* ══════════════════════════════════════════════════════
+          KIDS SECTION
+      ══════════════════════════════════════════════════════ */}
+      <section className="flex flex-col md:flex-row items-center px-6 py-10 gap-8">
+        <div className="w-full md:w-[40%] flex flex-col gap-4">
+          <div>
+            <h2 className="text-5xl font-light text-gray-800">Kids</h2>
+            <h3 className="text-2xl text-gray-600 mt-1">
+              Clothing, Shoes &amp; Accessories
+            </h3>
           </div>
-          <div className="p-[10px] w-full">
-            <img style={{ width: "100%" }} src="/img/banner-video.jpg" alt="" />
+          <p className="text-base text-gray-400 leading-relaxed">
+            Elevate your child's wardrobe with our versatile range of Kids
+            Clothing, Shoes &amp; Accessories, crafted to reflect the latest
+            fashion trends while prioritizing comfort and durability.
+          </p>
+          <div className="w-full rounded-2xl overflow-hidden bg-gray-100">
+            <img
+              src="/img/banner-video.jpg"
+              alt=""
+              className="w-full object-cover"
+              onError={(e) => (e.currentTarget.style.display = "none")}
+            />
           </div>
         </div>
 
-        {/* c-img: w-60% */}
-        <div className="w-full md:w-[60%]">
-          <img src="/img/lookbook-1.jpg" alt="lookbook" className="w-full" />
+        <div className="w-full md:w-[60%] rounded-2xl overflow-hidden bg-gray-100">
+          <img
+            src="/img/lookbook-1.jpg"
+            alt="lookbook"
+            className="w-full object-cover"
+            onError={(e) => (e.currentTarget.style.display = "none")}
+          />
         </div>
       </section>
 
-      {/* ── Filter + Product Grid ────────────────────────────────── */}
-      {/* cnt-filter: w-full */}
-      <div className="w-full">
-        {/* select-container: flex, centered, mt-[100px] mb-[100px] */}
-        <div
-          className="w-full mt-[100px] mb-[100px] flex justify-center items-center"
-          ref={selectRef}
-        >
-          <p className="m-[10px] mr-[30px] text-[20px]">Sort by</p>
-          <div className="w-[15%] relative min-w-[120px]">
-            {/* select-selected */}
-            <div
-              className={`text-[15px] bg-white py-[15px] px-[15px] border border-[#e5e4e5] rounded-[25px] cursor-pointer transition-colors duration-200 hover:bg-[#719378] hover:text-white ${
-                catOpen ? "bg-[#719378] text-white" : "bg-white"
+      {/* ══════════════════════════════════════════════════════
+          FILTRE + GRILLE PRODUITS
+      ══════════════════════════════════════════════════════ */}
+      <section className="py-12 px-6">
+        {/* Header section */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-light text-gray-800">Our Products</h2>
+          <p className="text-sm text-gray-400 mt-2">Discover our latest arrivals</p>
+        </div>
+
+        {/* Filtres catégorie */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border ${
+                category === c
+                  ? "bg-[#719378] text-white border-[#719378]"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-[#719378] hover:text-[#719378]"
               }`}
+            >
+              {c}
+            </button>
+          ))}
+
+          {/* Dropdown tri sur mobile */}
+          <div className="relative md:hidden" ref={selectRef}>
+            <button
               onClick={() => setCatOpen((o) => !o)}
+              className={`flex items-center gap-2 px-5 py-2 rounded-full border text-sm font-medium transition-colors cursor-pointer ${
+                catOpen
+                  ? "bg-[#719378] text-white border-[#719378]"
+                  : "bg-white text-gray-600 border-gray-200"
+              }`}
             >
               {category}
-            </div>
-            {/* select-items */}
+              <ChevronDown size={14} className={`transition-transform ${catOpen ? "rotate-180" : ""}`} />
+            </button>
             {catOpen && (
-              <div className="bg-white absolute border border-[#e5e4e5] z-[99] w-full box-border p-[5px] text-[15px]">
+              <div className="absolute top-full left-0 mt-1 w-36 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden">
                 {CATEGORIES.map((c) => (
-                  <div
+                  <button
                     key={c}
-                    className="p-[10px] cursor-pointer hover:bg-[#f1f1f1]"
-                    onClick={() => {
-                      setCategory(c);
-                      setCatOpen(false);
-                    }}
+                    onClick={() => { setCategory(c); setCatOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm cursor-pointer border-none bg-white transition-colors ${
+                      c === category
+                        ? "bg-green-50 text-[#719378] font-semibold"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     {c}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* ct-filter c-1 / c-2 : two columns */}
-        <div className="flex justify-center items-center">
-          <div className="w-full p-[15px] text-center">
-            {filtered
-              .filter((_, i) => i % 2 === 0)
-              .map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+        {/* Grille produits */}
+        {loadingFil ? (
+          <div className="flex flex-wrap justify-center">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <SkeletonCard key={i} />)}
           </div>
-          <div className="w-full p-[15px] text-center">
-            {filtered
-              .filter((_, i) => i % 2 === 1)
-              .map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+            <span className="text-5xl">🛍️</span>
+            <p className="text-gray-400 text-sm">No products in this category yet.</p>
           </div>
-        </div>
-      </div>
+        ) : (
+          <div className="flex flex-wrap justify-center">
+            {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        )}
 
-      {/* ── View All ─────────────────────────────────────────────── */}
-      {/* center-btn: flex, justify-center */}
-      <div className="w-full flex justify-center py-8">
-        <button
-          className="bg-[#719378] text-white text-[12px] font-bold leading-[33px] px-[52px] rounded-[25px] m-[10px] cursor-pointer border-0"
-          onClick={() => navigate("/shop")}
-        >
-          View All
-        </button>
-      </div>
-    </main>
+        {/* Voir tout */}
+        <div className="flex justify-center mt-10">
+          <button
+            className="px-10 py-3 rounded-full bg-[#719378] text-white text-sm font-bold hover:opacity-85 transition-opacity cursor-pointer border-none"
+            onClick={() => navigate(category === "All" ? "/shop" : `/shop?category=${category}`)}
+          >
+            View All Products
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
