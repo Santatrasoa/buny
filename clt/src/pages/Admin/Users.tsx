@@ -8,7 +8,6 @@ import {
 import { userApi } from "../../api/api";
 import type { User } from "../../types";
 
-/* ── Liste ─────────────────────────────────────────────────────────────────── */
 export function AdminUsers() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
@@ -40,7 +39,12 @@ export function AdminUsers() {
   }, [page, search]);
 
   useEffect(() => {
-    load();
+    // Defer load to avoid synchronous setState inside the effect
+    const id = setTimeout(() => {
+      load();
+    }, 0);
+
+    return () => clearTimeout(id);
   }, [load]);
 
   const handleDelete = async (id: number) => {
@@ -62,254 +66,190 @@ export function AdminUsers() {
     setSearchParams(p);
   };
 
-  const tdStyle = {
-    padding: "0.75rem 1rem",
-    borderBottom: "1px solid #f3f4f6",
-    fontSize: "0.875rem",
-  };
-
   return (
     <div>
       {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: "1.5rem",
-            right: "1.5rem",
-            background: "#f7c6d6",
-            color: "#fff",
-            padding: "0.75rem 1.25rem",
-            borderRadius: "999px",
-            zIndex: 9999,
-            fontSize: "0.875rem",
-          }}
-        >
+        <div className="fixed top-5 right-5 z-50 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-3 rounded-xl text-sm font-medium shadow-lg">
           {toast}
         </div>
       )}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1.5rem",
-        }}
-      >
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 style={{ fontWeight: 300, fontSize: "1.75rem" }}>Users</h1>
-          <p style={{ opacity: 0.5, fontSize: "0.875rem" }}>
-            {total} user{total !== 1 ? "s" : ""}
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            Users
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {total} user{total !== 1 ? "s" : ""} total
           </p>
         </div>
-        <Link to="/admin/users/new">
-          <button className="button" style={{ fontSize: "0.875rem" }}>
-            + New User
-          </button>
+        <Link
+          to="/admin/users/new"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#719378] text-white text-sm font-semibold hover:opacity-90 transition-opacity no-underline"
+        >
+          + New User
         </Link>
       </div>
 
-      <input
-        type="text"
-        placeholder="Search users..."
-        value={search}
-        onChange={(e) => setFilter("search", e.target.value)}
-        style={{
-          padding: "0.65rem 1rem",
-          border: "1px solid #d1d5db",
-          borderRadius: "999px",
-          marginBottom: "1.5rem",
-          fontSize: "0.875rem",
-          outline: "none",
-          width: "280px",
-        }}
-      />
+      <div className="relative inline-block mb-5">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          className="pl-9 pr-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-[#719378] focus:ring-2 focus:ring-[#719378]/20 w-64 placeholder-gray-400 transition-all"
+          type="text"
+          placeholder="Search users…"
+          value={search}
+          onChange={(e) => setFilter("search", e.target.value)}
+        />
+      </div>
 
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}
-      >
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
         {loading ? (
-          <div style={{ padding: "3rem", textAlign: "center", opacity: 0.4 }}>
-            Loading...
+          <div className="flex items-center justify-center py-16 gap-2 text-gray-400 text-sm">
+            <div className="w-5 h-5 border-2 border-gray-200 border-t-[#719378] rounded-full animate-spin" />{" "}
+            Loading…
           </div>
         ) : users.length === 0 ? (
-          <div style={{ padding: "3rem", textAlign: "center", opacity: 0.4 }}>
-            No users found
+          <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+            <span className="text-4xl mb-2">👤</span>
+            <p className="font-medium">No users found</p>
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr
-                style={{
-                  background: "#f9fafb",
-                  fontSize: "0.75rem",
-                  textTransform: "uppercase",
-                  color: "#6b7280",
-                }}
-              >
-                <th style={{ ...tdStyle, textAlign: "left" }}>User</th>
-                <th style={{ ...tdStyle, textAlign: "left" }}>Phone</th>
-                <th style={{ ...tdStyle, textAlign: "center" }}>Role</th>
-                <th style={{ ...tdStyle, textAlign: "center" }}>Status</th>
-                <th style={{ ...tdStyle, textAlign: "right" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td style={tdStyle}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "34px",
-                          height: "34px",
-                          borderRadius: "50%",
-                          background: u.roles?.includes("ROLE_ADMIN")
-                            ? "#f3e8ff"
-                            : "#f0fdf4",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 700,
-                          fontSize: "0.8rem",
-                          color: u.roles?.includes("ROLE_ADMIN")
-                            ? "#9333ea"
-                            : "#16a34a",
-                          flexShrink: 0,
-                        }}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800/50">
+                  {["User", "Phone", "Role", "Status", "Actions"].map(
+                    (h, i) => (
+                      <th
+                        key={h}
+                        className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-gray-800 ${
+                          i === 0
+                            ? "text-left"
+                            : i === 1
+                              ? "text-left"
+                              : i >= 2
+                                ? "text-center"
+                                : ""
+                        } ${i === 4 ? "text-right" : ""}`}
                       >
-                        {(u.firstName?.[0] || u.email[0]).toUpperCase()}
-                      </div>
-                      <div>
-                        <p style={{ fontWeight: 500 }}>
-                          {u.firstName
-                            ? `${u.firstName} ${u.lastName || ""}`.trim()
-                            : u.email}
-                        </p>
-                        <p style={{ fontSize: "0.75rem", opacity: 0.4 }}>
-                          {u.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td style={{ ...tdStyle, opacity: 0.5 }}>{u.phone || "—"}</td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "999px",
-                        background: u.roles?.includes("ROLE_ADMIN")
-                          ? "#f3e8ff"
-                          : "#f3f4f6",
-                        color: u.roles?.includes("ROLE_ADMIN")
-                          ? "#9333ea"
-                          : "#6b7280",
-                      }}
-                    >
-                      {u.roles?.includes("ROLE_ADMIN") ? "👑 Admin" : "User"}
-                    </span>
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: "center" }}>
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "999px",
-                        background: u.active ? "#f0fdf4" : "#f3f4f6",
-                        color: u.active ? "#16a34a" : "#6b7280",
-                      }}
-                    >
-                      {u.active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td style={{ ...tdStyle, textAlign: "right" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.5rem",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <Link to={`/admin/users/${u.id}/edit`}>
-                        <button
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "1rem",
-                          }}
-                        >
-                          ✏️
-                        </button>
-                      </Link>
-                      {confirmId === u.id ? (
-                        <div style={{ display: "flex", gap: "0.25rem" }}>
-                          <button
-                            onClick={() => handleDelete(u.id)}
-                            style={{
-                              background: "#ef4444",
-                              color: "#fff",
-                              border: "none",
-                              borderRadius: "6px",
-                              padding: "0.25rem 0.5rem",
-                              cursor: "pointer",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setConfirmId(null)}
-                            style={{
-                              background: "#f3f4f6",
-                              border: "none",
-                              borderRadius: "6px",
-                              padding: "0.25rem 0.5rem",
-                              cursor: "pointer",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmId(u.id)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "1rem",
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-                  </td>
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((u) => {
+                  const isAdmin = u.roles?.includes("ROLE_ADMIN");
+                  return (
+                    <tr
+                      key={u.id}
+                      className="border-t border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                              isAdmin
+                                ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                                : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                            }`}
+                          >
+                            {(u.firstName?.[0] || u.email[0]).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                              {u.firstName
+                                ? `${u.firstName} ${u.lastName || ""}`.trim()
+                                : u.email}
+                            </div>
+                            <div className="text-[11px] text-gray-400">
+                              {u.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                        {u.phone || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            isAdmin
+                              ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {isAdmin ? "👑 Admin" : "User"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            u.active
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {u.active ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex gap-1.5 justify-end">
+                          <Link
+                            to={`/admin/users/${u.id}/edit`}
+                            className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            ✏️
+                          </Link>
+                          {confirmId === u.id ? (
+                            <>
+                              <button
+                                onClick={() => handleDelete(u.id)}
+                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white transition-colors border-none cursor-pointer"
+                              >
+                                Confirm
+                              </button>
+                              <button
+                                onClick={() => setConfirmId(null)}
+                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 transition-colors border-none cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmId(u.id)}
+                              className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center text-sm hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 transition-colors cursor-pointer"
+                            >
+                              🗑️
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-/* ── Formulaire ────────────────────────────────────────────────────────────── */
 export function AdminUserForm() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
@@ -327,15 +267,6 @@ export function AdminUserForm() {
   const [fetching, setF] = useState(isEdit);
   const [error, setErr] = useState("");
   const [showPwd, setSP] = useState(false);
-
-  const inp = {
-    border: "1px solid #d1d5db",
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    fontSize: "0.875rem",
-    outline: "none",
-    width: "100%",
-  };
 
   useEffect(() => {
     if (!isEdit) return;
@@ -370,7 +301,6 @@ export function AdminUserForm() {
       setErr("Password min. 6 characters");
       return;
     }
-
     setL(true);
     setErr("");
     const payload: Record<string, unknown> = {
@@ -382,7 +312,6 @@ export function AdminUserForm() {
       active: form.active,
     };
     if (form.password) payload.password = form.password;
-
     try {
       if (isEdit) await userApi.update(Number(id), payload);
       else await userApi.create(payload);
@@ -394,69 +323,48 @@ export function AdminUserForm() {
     }
   };
 
+  const inputCls =
+    "w-full px-3.5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 outline-none focus:border-[#719378] focus:ring-2 focus:ring-[#719378]/20 transition-all placeholder-gray-400 font-[inherit]";
+
   if (fetching)
     return (
-      <div style={{ padding: "3rem", textAlign: "center", opacity: 0.4 }}>
-        Loading...
+      <div className="flex items-center justify-center py-20 gap-2 text-gray-400 text-sm">
+        <div className="w-5 h-5 border-2 border-gray-200 border-t-[#719378] rounded-full animate-spin" />{" "}
+        Loading…
       </div>
     );
 
   return (
-    <div style={{ maxWidth: "600px" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <Link to="/admin/users" style={{ opacity: 0.5, fontSize: "0.875rem" }}>
+    <div className="max-w-xl">
+      <div className="flex items-center gap-3 mb-6">
+        <Link
+          to="/admin/users"
+          className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors no-underline"
+        >
           ← Users
         </Link>
-        <h1 style={{ fontWeight: 300, fontSize: "1.75rem" }}>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
           {isEdit ? "Edit User" : "New User"}
         </h1>
       </div>
 
       {error && (
-        <p style={{ color: "red", marginBottom: "1rem", fontSize: "0.875rem" }}>
-          {error}
-        </p>
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm mb-4">
+          ⚠️ {error}
+        </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        style={{
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          borderRadius: "12px",
-          padding: "2rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.25rem",
-        }}
+        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col gap-4"
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "1rem",
-          }}
-        >
-          <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.875rem",
-                marginBottom: "0.5rem",
-                fontWeight: 500,
-              }}
-            >
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               First Name
             </label>
             <input
-              style={inp}
+              className={inputCls}
               type="text"
               placeholder="First name"
               value={form.firstName}
@@ -465,19 +373,12 @@ export function AdminUserForm() {
               }
             />
           </div>
-          <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: "0.875rem",
-                marginBottom: "0.5rem",
-                fontWeight: 500,
-              }}
-            >
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Last Name
             </label>
             <input
-              style={inp}
+              className={inputCls}
               type="text"
               placeholder="Last name"
               value={form.lastName}
@@ -488,19 +389,12 @@ export function AdminUserForm() {
           </div>
         </div>
 
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.875rem",
-              marginBottom: "0.5rem",
-              fontWeight: 500,
-            }}
-          >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Email *
           </label>
           <input
-            style={inp}
+            className={inputCls}
             type="email"
             placeholder="email@example.com"
             value={form.email}
@@ -509,48 +403,36 @@ export function AdminUserForm() {
           />
         </div>
 
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.875rem",
-              marginBottom: "0.5rem",
-              fontWeight: 500,
-            }}
-          >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Phone
           </label>
           <input
-            style={inp}
+            className={inputCls}
             type="tel"
-            placeholder="+261 34 ..."
+            placeholder="+261 34 …"
             value={form.phone}
             onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           />
         </div>
 
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.875rem",
-              marginBottom: "0.5rem",
-              fontWeight: 500,
-            }}
-          >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Password{" "}
-            {isEdit && (
-              <span style={{ opacity: 0.4, fontWeight: 400 }}>
+            {isEdit ? (
+              <span className="text-gray-400 normal-case font-normal">
                 (leave empty = unchanged)
               </span>
+            ) : (
+              "*"
             )}
-            {!isEdit && " *"}
           </label>
-          <div style={{ position: "relative" }}>
+          <div className="relative">
             <input
-              style={{ ...inp, paddingRight: "3rem" }}
+              className={inputCls}
               type={showPwd ? "text" : "password"}
               placeholder={isEdit ? "••••••••" : "Min. 6 characters"}
+              style={{ paddingRight: "2.75rem" }}
               value={form.password}
               onChange={(e) =>
                 setForm((f) => ({ ...f, password: e.target.value }))
@@ -559,138 +441,64 @@ export function AdminUserForm() {
             <button
               type="button"
               onClick={() => setSP((v) => !v)}
-              style={{
-                position: "absolute",
-                right: "0.75rem",
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "1.1rem",
-              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer text-base"
             >
               {showPwd ? "🙈" : "👁️"}
             </button>
           </div>
         </div>
 
-        {/* Toggle Admin */}
-        <div
-          style={{
-            background: "#faf5ff",
-            border: "1px solid #e9d5ff",
-            borderRadius: "10px",
-            padding: "1rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
+        {/* Admin toggle */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-purple-200 dark:border-purple-800/50 bg-purple-50 dark:bg-purple-900/10">
           <button
             type="button"
             onClick={() => setForm((f) => ({ ...f, isAdmin: !f.isAdmin }))}
-            style={{
-              width: "44px",
-              height: "24px",
-              borderRadius: "999px",
-              border: "none",
-              background: form.isAdmin ? "#9333ea" : "#d1d5db",
-              cursor: "pointer",
-              position: "relative",
-              flexShrink: 0,
-              transition: "background 0.2s",
-            }}
+            className={`w-11 h-6 rounded-full border-none cursor-pointer relative transition-colors duration-200 shrink-0 ${form.isAdmin ? "bg-purple-600" : "bg-gray-300 dark:bg-gray-600"}`}
           >
             <span
-              style={{
-                position: "absolute",
-                top: "2px",
-                left: form.isAdmin ? "22px" : "2px",
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                background: "#fff",
-                transition: "left 0.2s",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-              }}
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${form.isAdmin ? "left-5" : "left-0.5"}`}
             />
           </button>
           <div>
-            <p
-              style={{
-                fontWeight: 500,
-                color: "#7e22ce",
-                fontSize: "0.875rem",
-              }}
-            >
+            <div className="text-sm font-semibold text-purple-700 dark:text-purple-400">
               Administrator
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "#9333ea", opacity: 0.7 }}>
-              Access to admin panel
-            </p>
+            </div>
+            <div className="text-xs text-purple-500 dark:text-purple-500 opacity-80">
+              Full access to admin panel
+            </div>
           </div>
         </div>
 
-        {/* Toggle Active */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        {/* Active toggle */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <button
             type="button"
             onClick={() => setForm((f) => ({ ...f, active: !f.active }))}
-            style={{
-              width: "44px",
-              height: "24px",
-              borderRadius: "999px",
-              border: "none",
-              background: form.active ? "#f7c6d6" : "#d1d5db",
-              cursor: "pointer",
-              position: "relative",
-              flexShrink: 0,
-              transition: "background 0.2s",
-            }}
+            className={`w-11 h-6 rounded-full border-none cursor-pointer relative transition-colors duration-200 shrink-0 ${form.active ? "bg-[#719378]" : "bg-gray-300 dark:bg-gray-600"}`}
           >
             <span
-              style={{
-                position: "absolute",
-                top: "2px",
-                left: form.active ? "22px" : "2px",
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                background: "#fff",
-                transition: "left 0.2s",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-              }}
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all duration-200 ${form.active ? "left-5" : "left-0.5"}`}
             />
           </button>
-          <span style={{ fontSize: "0.875rem" }}>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {form.active ? "Active account" : "Deactivated account"}
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "0.75rem", paddingTop: "0.5rem" }}>
+        <div className="flex gap-3 pt-1">
           <button
             type="button"
             onClick={() => navigate("/admin/users")}
-            style={{
-              flex: 1,
-              padding: "0.75rem",
-              border: "1px solid #d1d5db",
-              borderRadius: "8px",
-              background: "#fff",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
+            className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="button"
-            style={{ flex: 1, opacity: loading ? 0.7 : 1 }}
+            className="flex-1 py-2.5 rounded-lg bg-[#719378] text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 cursor-pointer border-none"
           >
-            {loading ? "Saving..." : isEdit ? "Save Changes" : "Create User"}
+            {loading ? "Saving…" : isEdit ? "Save Changes" : "Create User"}
           </button>
         </div>
       </form>

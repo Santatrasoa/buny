@@ -12,7 +12,6 @@ type FormState = {
   confirm: string;
 };
 
-/* ── Sorti HORS du composant Register ── */
 function Field({
   label,
   icon,

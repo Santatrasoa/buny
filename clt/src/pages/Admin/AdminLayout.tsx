@@ -1,152 +1,152 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
+import ThemeProvider from "../../hooks/ThemeProvider";
 
-export default function AdminLayout() {
+function AdminLayoutInner() {
   const { user, logout } = useAuth();
+  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const getPageTitle = () => {
+    if (location.pathname === "/admin") return "Dashboard";
+    if (location.pathname.includes("/admin/products")) return "Products";
+    if (location.pathname.includes("/admin/users")) return "Users";
+    return "Admin";
   };
 
+  const navLinks = [
+    { to: "/admin", label: "Dashboard", icon: "📊", end: true },
+    { to: "/admin/products", label: "Products", icon: "👶" },
+    { to: "/admin/users", label: "Users", icon: "👤" },
+  ];
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      {/* Sidebar */}
-      <aside
-        style={{
-          width: "220px",
-          background: "#2d2d2d",
-          color: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            padding: "1.5rem",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <img
-            src="/icon/logo.png"
-            alt="Buny"
-            style={{ width: "80px", filter: "brightness(0) invert(1)" }}
-          />
-          <p
-            style={{ fontSize: "0.75rem", opacity: 0.5, marginTop: "0.25rem" }}
-          >
-            Administration
-          </p>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      {/* ── Sidebar ── */}
+      <aside className="w-60 bg-gray-900 dark:bg-gray-950 flex flex-col shrink-0 sticky top-0 h-screen overflow-y-auto border-r border-white/5">
+        {/* Logo */}
+        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5">
+          <div className="w-9 h-9 rounded-xl bg-linear-to-br from-[#719378] to-[#a8d5b5] flex items-center justify-center text-base shrink-0">
+            🐰
+          </div>
+          <div>
+            <div className="text-white font-bold text-base tracking-tight leading-none">
+              Buny
+            </div>
+            <div className="text-white/30 text-[10px] uppercase tracking-widest mt-0.5">
+              Admin Panel
+            </div>
+          </div>
         </div>
 
-        <div
-          style={{
-            padding: "1rem 1.5rem",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <p style={{ fontSize: "0.85rem", fontWeight: 500 }}>
-            {user?.firstName || user?.email}
-          </p>
-          <p style={{ fontSize: "0.75rem", opacity: 0.4 }}>{user?.email}</p>
+        {/* User */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+          <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#719378] to-[#f7c6d6] flex items-center justify-center font-bold text-xs text-white shrink-0">
+            {(user?.firstName?.[0] || user?.email?.[0] || "A").toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <div className="text-white text-sm font-semibold truncate">
+              {user?.firstName
+                ? `${user.firstName} ${user.lastName || ""}`.trim()
+                : "Admin"}
+            </div>
+            <div className="text-white/30 text-[11px] truncate">
+              {user?.email}
+            </div>
+          </div>
         </div>
 
-        <nav style={{ flex: 1, padding: "1rem" }}>
-          {[
-            { to: "/admin", label: "📊 Dashboard", end: true },
-            { to: "/admin/products", label: "👶 Products" },
-            { to: "/admin/users", label: "👤 Users" },
-          ].map(({ to, label, end }) => (
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 px-3 pb-1.5 pt-1">
+            Navigation
+          </p>
+          {navLinks.map(({ to, label, icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              style={({ isActive }) => ({
-                display: "block",
-                padding: "0.75rem 1rem",
-                marginBottom: "0.25rem",
-                borderRadius: "8px",
-                textDecoration: "none",
-                fontSize: "0.875rem",
-                background: isActive ? "#f7c6d6" : "transparent",
-                color: isActive ? "#fff" : "rgba(255,255,255,0.7)",
-              })}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? "bg-[#719378]/20 text-[#a8d5b5]"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                }`
+              }
             >
+              <span className="text-base leading-none">{icon}</span>
               {label}
             </NavLink>
           ))}
-        </nav>
 
-        <div
-          style={{
-            padding: "1rem",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
+          <p className="text-[10px] font-bold uppercase tracking-widest text-white/20 px-3 pb-1.5 pt-4">
+            Site
+          </p>
           <button
             onClick={() => navigate("/")}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "0.75rem",
-              marginBottom: "0.25rem",
-              background: "transparent",
-              border: "none",
-              color: "rgba(255,255,255,0.7)",
-              cursor: "pointer",
-              textAlign: "left",
-              borderRadius: "8px",
-              fontSize: "0.875rem",
-            }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all w-full text-left"
           >
-            🏠 View Site
+            <span className="text-base leading-none">🏠</span>
+            View Store
           </button>
+        </nav>
+
+        {/* Footer */}
+        <div className="px-3 py-3 border-t border-white/5 flex flex-col gap-0.5">
           <button
-            onClick={handleLogout}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "0.75rem",
-              background: "transparent",
-              border: "none",
-              color: "rgba(255,255,255,0.7)",
-              cursor: "pointer",
-              textAlign: "left",
-              borderRadius: "8px",
-              fontSize: "0.875rem",
-            }}
+            onClick={toggle}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-all w-full text-left"
           >
-            🚪 Logout
+            <span className="text-base leading-none">
+              {theme === "light" ? "🌙" : "☀️"}
+            </span>
+            {theme === "light" ? "Dark Mode" : "Light Mode"}
+          </button>
+          <div className="h-px bg-white/5 my-1" />
+          <button
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all w-full text-left"
+          >
+            <span className="text-base leading-none">🚪</span>
+            Logout
           </button>
         </div>
       </aside>
 
-      {/* Contenu */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <header
-          style={{
-            background: "#fff",
-            borderBottom: "1px solid #e5e7eb",
-            padding: "1rem 2rem",
-            fontSize: "0.875rem",
-            color: "#6b7280",
-          }}
-        >
-          Admin Panel — Buny Baby Store
+      {/* ── Main ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Topbar */}
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 h-14 flex items-center justify-between px-6 sticky top-0 z-10 transition-colors">
+          <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+            {getPageTitle()}
+          </span>
+          <button
+            onClick={toggle}
+            className="w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-[#719378] hover:border-[#719378] hover:bg-green-50 dark:hover:bg-[#719378]/10 transition-all"
+            title="Toggle theme"
+          >
+            {theme === "light" ? "🌙" : "☀️"}
+          </button>
         </header>
-        <main style={{ flex: 1, overflowY: "auto", padding: "2rem" }}>
+
+        {/* Content */}
+        <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
       </div>
     </div>
+  );
+}
+
+export default function AdminLayout() {
+  return (
+    <ThemeProvider>
+      <AdminLayoutInner />
+    </ThemeProvider>
   );
 }

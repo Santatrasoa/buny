@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -93,18 +93,33 @@ export const userApi = {
       if (!d) return r.data;
       return {
         id: (d["Id"] as unknown as number) ?? (d["id"] as unknown as number),
-        email: (d["Email"] as unknown as string) ?? (d["email"] as unknown as string),
+        email:
+          (d["Email"] as unknown as string) ??
+          (d["email"] as unknown as string),
         firstName:
-          (d["FirstName"] as unknown as string) ?? (d["firstName"] as unknown as string) ?? null,
+          (d["FirstName"] as unknown as string) ??
+          (d["firstName"] as unknown as string) ??
+          null,
         lastName:
-          (d["LastName"] as unknown as string) ?? (d["lastName"] as unknown as string) ?? null,
-        phone: (d["Phone"] as unknown as string) ?? (d["phone"] as unknown as string) ?? null,
+          (d["LastName"] as unknown as string) ??
+          (d["lastName"] as unknown as string) ??
+          null,
+        phone:
+          (d["Phone"] as unknown as string) ??
+          (d["phone"] as unknown as string) ??
+          null,
         roles:
-          (d["Roles"] as unknown as string[]) ?? (d["roles"] as unknown as string[]) ?? [],
+          (d["Roles"] as unknown as string[]) ??
+          (d["roles"] as unknown as string[]) ??
+          [],
         active:
-          (d["Active"] as unknown as boolean) ?? (d["active"] as unknown as boolean) ?? false,
+          (d["Active"] as unknown as boolean) ??
+          (d["active"] as unknown as boolean) ??
+          false,
         createdAt:
-          (d["CreatedAt"] as unknown as string) ?? (d["createdAt"] as unknown as string) ?? undefined,
+          (d["CreatedAt"] as unknown as string) ??
+          (d["createdAt"] as unknown as string) ??
+          undefined,
       };
     }),
   create: (data: object) => api.post("/api/users", data).then((r) => r.data),

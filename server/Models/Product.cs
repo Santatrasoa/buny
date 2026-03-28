@@ -18,7 +18,6 @@ public class Product
 
     public int Stock { get; set; } = 0;
 
-    [MaxLength(255)]
     public string? Image { get; set; }
 
     [MaxLength(100)]

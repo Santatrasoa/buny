@@ -17,6 +17,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(p => p.Category);
             e.HasIndex(p => p.Active);
             e.Property(p => p.Price).HasPrecision(10, 2);
+            e.Property(p => p.CreatedAt).HasColumnType("timestamp with time zone");
+            e.Property(p => p.UpdatedAt).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<User>(e =>
@@ -24,11 +26,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(u => u.Email).IsUnique();
             e.Ignore(u => u.RolesList);
             e.Ignore(u => u.IsAdmin);
+            e.Property(u => u.CreatedAt).HasColumnType("timestamp with time zone");
+            e.Property(u => u.UpdatedAt).HasColumnType("timestamp with time zone");
         });
-
-        // IMPORTANT: Le seed de l'admin est géré par DbSeeder au démarrage,
-        // PAS ici. BCrypt.HashPassword() génère un hash différent à chaque
-        // appel (salt aléatoire), ce qui force EF à créer une nouvelle
-        // migration à chaque fois en voyant les données comme "modifiées".
     }
 }
