@@ -15,9 +15,16 @@ public interface IAuthService
 
 public class AuthService(IConfiguration config) : IAuthService
 {
+    // Fallback identique à celui de Program.cs pour garantir la cohérence.
+    // En production, Jwt:Key DOIT être défini dans les variables d'environnement
+    // ou dans appsettings.json — ne jamais utiliser la valeur par défaut ci-dessous.
+    private const string FallbackKey = "BunySecretKey_ChangeInProduction_2024!MinLength32Chars";
+
+    private string JwtKey => config["Jwt:Key"] ?? FallbackKey;
+
     public string GenerateToken(User user)
     {
-        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
+        var key     = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
         var creds   = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.UtcNow.AddDays(7);
 

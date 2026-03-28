@@ -5,60 +5,38 @@ import { authApi } from "../../api/api";
 
 type FormState = {
   firstName: string;
-  lastName:  string;
-  email:     string;
-  phone:     string;
-  password:  string;
-  confirm:   string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirm: string;
 };
 
-export default function Register() {
-  const [form, setForm] = useState<FormState>({
-    firstName: "", lastName: "", email: "", phone: "", password: "", confirm: "",
-  });
-  const [showPwd,  setShowPwd]  = useState(false);
-  const [showConf, setShowConf] = useState(false);
-  const [error,    setError]    = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const navigate = useNavigate();
-
-  const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (form.password !== form.confirm) { setError("Passwords do not match"); return; }
-    if (form.password.length < 6)       { setError("Password must be at least 6 characters"); return; }
-    setLoading(true);
-    try {
-      await authApi.register({
-        email:     form.email,
-        password:  form.password,
-        firstName: form.firstName || undefined,
-        lastName:  form.lastName  || undefined,
-        phone:     form.phone     || undefined,
-        roles:     ["ROLE_USER"],
-      });
-      navigate("/login");
-    } catch (err: unknown) {
-      setError(typeof err === "string" ? err : "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ── Helper pour champ avec icône ── */
-  const Field = ({
-    label, icon, type = "text", placeholder, value, onChange, required = false,
-    rightEl,
-  }: {
-    label: string; icon: React.ReactNode; type?: string; placeholder: string;
-    value: string; onChange: React.ChangeEventHandler<HTMLInputElement>;
-    required?: boolean; rightEl?: React.ReactNode;
-  }) => (
+/* ── Sorti HORS du composant Register ── */
+function Field({
+  label,
+  icon,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  required = false,
+  rightEl,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  type?: string;
+  placeholder: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  required?: boolean;
+  rightEl?: React.ReactNode;
+}) {
+  return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label}
+      </label>
       <div className="relative">
         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
           {icon}
@@ -72,15 +50,65 @@ export default function Register() {
           className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 outline-none text-sm transition-colors focus:border-[#719378] focus:ring-2 focus:ring-[#719378]/10 bg-gray-50"
         />
         {rightEl && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightEl}</span>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">
+            {rightEl}
+          </span>
         )}
       </div>
     </div>
   );
+}
+
+export default function Register() {
+  const [form, setForm] = useState<FormState>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+  });
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConf, setShowConf] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const set =
+    (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (form.password !== form.confirm) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setLoading(true);
+    try {
+      await authApi.register({
+        email: form.email,
+        password: form.password,
+        firstName: form.firstName || undefined,
+        lastName: form.lastName || undefined,
+        phone: form.phone || undefined,
+        roles: ["ROLE_USER"],
+      });
+      navigate("/login");
+    } catch (err: unknown) {
+      setError(typeof err === "string" ? err : "Registration failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
-      {/* Breadcrumb banner */}
       <section className="relative w-full overflow-hidden">
         <img
           src="/img/background/bg-breadcrumb.jpg"
@@ -90,13 +118,14 @@ export default function Register() {
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white">
           <h1 className="text-4xl font-light">Register</h1>
           <p className="text-sm opacity-80">
-            <Link to="/" className="text-white no-underline hover:underline">Home</Link>
-            {" "}&gt;{" "}Register
+            <Link to="/" className="text-white no-underline hover:underline">
+              Home
+            </Link>{" "}
+            &gt; Register
           </p>
         </div>
       </section>
 
-      {/* Form */}
       <section className="w-full flex justify-center py-16 px-4 bg-gray-50">
         <div className="w-full max-w-lg">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -104,8 +133,12 @@ export default function Register() {
               <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
                 <UserPlus size={24} className="text-[#719378]" />
               </div>
-              <h2 className="text-2xl font-light text-gray-800">Create an account</h2>
-              <p className="text-sm text-gray-400 mt-1">Join the Buny family today</p>
+              <h2 className="text-2xl font-light text-gray-800">
+                Create an account
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">
+                Join the Buny family today
+              </p>
             </div>
 
             {error && (
@@ -116,7 +149,6 @@ export default function Register() {
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* First & Last name */}
               <div className="grid grid-cols-2 gap-3">
                 <Field
                   label="First Name"
@@ -134,17 +166,14 @@ export default function Register() {
                 />
               </div>
 
-              {/* Phone */}
               <Field
                 label="Phone (optional)"
                 icon={<Phone size={16} />}
-                type="tel"
                 placeholder="+261 34 …"
                 value={form.phone}
                 onChange={set("phone")}
               />
 
-              {/* Email */}
               <Field
                 label="Email address *"
                 icon={<Mail size={16} />}
@@ -155,7 +184,6 @@ export default function Register() {
                 required
               />
 
-              {/* Password */}
               <Field
                 label="Password *"
                 icon={<Lock size={16} />}
@@ -175,7 +203,6 @@ export default function Register() {
                 }
               />
 
-              {/* Confirm */}
               <Field
                 label="Confirm Password *"
                 icon={<Lock size={16} />}
@@ -195,28 +222,32 @@ export default function Register() {
                 }
               />
 
-              {/* Password strength bar */}
               {form.password && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 items-center">
                   {[1, 2, 3].map((i) => (
                     <div
                       key={i}
                       className={`h-1.5 flex-1 rounded-full transition-colors ${
                         form.password.length >= i * 4
-                          ? i === 1 ? "bg-red-400"
-                          : i === 2 ? "bg-yellow-400"
-                          : "bg-[#719378]"
+                          ? i === 1
+                            ? "bg-red-400"
+                            : i === 2
+                              ? "bg-yellow-400"
+                              : "bg-[#719378]"
                           : "bg-gray-200"
                       }`}
                     />
                   ))}
                   <span className="text-xs text-gray-400 ml-1">
-                    {form.password.length < 4 ? "Weak" : form.password.length < 8 ? "Fair" : "Strong"}
+                    {form.password.length < 4
+                      ? "Weak"
+                      : form.password.length < 8
+                        ? "Fair"
+                        : "Strong"}
                   </span>
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -238,7 +269,10 @@ export default function Register() {
 
             <p className="text-center text-sm text-gray-500 mt-6">
               Already have an account?{" "}
-              <Link to="/login" className="text-[#719378] font-semibold no-underline hover:underline">
+              <Link
+                to="/login"
+                className="text-[#719378] font-semibold no-underline hover:underline"
+              >
                 Sign in
               </Link>
             </p>

@@ -12,15 +12,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ── Base de données ────────────────────────────────────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var useSqlite        = builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString);
 
-if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(connectionString))
+if (useSqlite)
 {
-    // Utilise SQLite en dev si pas de PostgreSQL configuré
     builder.Services.AddDbContext<AppDbContext>(opt =>
         opt.UseSqlite("Data Source=buny.db"));
 }
 else
 {
+    if (string.IsNullOrEmpty(connectionString))
+        throw new InvalidOperationException(
+            "La chaîne de connexion 'DefaultConnection' est manquante dans appsettings.json.");
+
     builder.Services.AddDbContext<AppDbContext>(opt =>
         opt.UseNpgsql(connectionString));
 }
@@ -31,7 +35,10 @@ builder.Services.AddScoped<IUserRepository,    UserRepository>();
 builder.Services.AddScoped<IAuthService,       AuthService>();
 
 // ── JWT ───────────────────────────────────────────────────────────────────────
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "BunySecretKey_ChangeInProduction_2024!";
+// Fallback identique à celui d'AuthService pour éviter toute incohérence de clé.
+const string JwtFallbackKey = "BunySecretKey_ChangeInProduction_2024!MinLength32Chars";
+var jwtKey = builder.Configuration["Jwt:Key"] ?? JwtFallbackKey;
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
@@ -75,12 +82,11 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title   = "Buny API",
-        Version = "v1",
+        Title       = "Buny API",
+        Version     = "v1",
         Description = "API REST pour la boutique Buny"
     });
 
-    // Bouton Authorize dans Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization: Bearer {token}",
@@ -101,11 +107,31 @@ builder.Services.AddSwaggerGen(c =>
 // ── Build ─────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Migration automatique au démarrage ────────────────────────────────────────
+// ── Migration + Seed au démarrage ─────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        // Applique les migrations en attente (crée la DB si elle n'existe pas).
+        await db.Database.MigrateAsync();
+        logger.LogInformation(
+            "Database migration applied. Provider: {Provider}",
+            useSqlite ? "SQLite (dev)" : "PostgreSQL");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex,
+            "Failed to apply database migrations. " +
+            "Verify your connection string and that the database server is running.");
+        // On ne termine pas le process pour laisser Swagger/health accessible,
+        // mais les endpoints de données retourneront 500 tant que la DB est down.
+    }
+
+    // Seed des données initiales (admin par défaut) si la table Users est vide.
+    await DbSeeder.SeedAsync(db, logger);
 }
 
 // ── Middleware pipeline ────────────────────────────────────────────────────────
@@ -126,8 +152,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Route de santé
-app.MapGet("/", () => new { status = "ok", api = "Buny API", version = "1.0.0" });
+// Routes utilitaires
+app.MapGet("/",       () => new { status = "ok",   api = "Buny API", version = "1.0.0" });
 app.MapGet("/health", () => new { healthy = true, timestamp = DateTime.UtcNow });
 
 app.Run();

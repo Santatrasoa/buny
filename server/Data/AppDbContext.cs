@@ -26,17 +26,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Ignore(u => u.IsAdmin);
         });
 
-        // Seed admin par défaut
-        modelBuilder.Entity<User>().HasData(new User
-        {
-            Id           = 1,
-            Email        = "admin@buny.mg",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234"),
-            FirstName    = "Admin",
-            LastName     = "Buny",
-            Roles        = """["ROLE_USER","ROLE_ADMIN"]""",
-            Active       = true,
-            CreatedAt    = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-        });
+        // IMPORTANT: Le seed de l'admin est géré par DbSeeder au démarrage,
+        // PAS ici. BCrypt.HashPassword() génère un hash différent à chaque
+        // appel (salt aléatoire), ce qui force EF à créer une nouvelle
+        // migration à chaque fois en voyant les données comme "modifiées".
     }
 }
